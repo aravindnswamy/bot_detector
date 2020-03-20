@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head> 
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="http://getbootstrap.com/docs-assets/ico/favicon.png">
+  <title>Signin Template for Bootstrap</title>
+  <link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet">
+  <style>
+    body {
+      padding-top: 40px;
+      padding-bottom: 40px;
+      background-color: #eee;
+    }
+
+    .form-signin {
+      max-width: 330px;
+      padding: 15px;
+      margin: 0 auto;
+    }
+
+    .form-signin .form-signin-heading,
+    .form-signin .checkbox {
+      margin-bottom: 10px;
+    }
+
+    .form-signin .checkbox {
+      font-weight: normal;
+    }
+
+    .form-signin .form-control {
+      position: relative;
+      font-size: 16px;
+      height: auto;
+      padding: 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    .form-signin .form-control:focus {
+      z-index: 2;
+    }
+
+    .form-signin input[type="text"] {
+      margin-bottom: -1px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .form-signin input[type="password"] {
+      margin-bottom: 10px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  </style>
+
+
+
+    <!-- CDN's to be added -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"> </script> -->
+    <script src="http://code.jquery.com/mobile/1.5.0-alpha.1/jquery.mobile-1.5.0-alpha.1.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs2/1.6.1/fingerprint2.min.js"> </script>
+    <!-- CDN's added  -->
+
+
+</head>
+
+
+<body>
+    <div id="output"></div>
+    <div class="container">
+      <form id="form1" name= "form1" class="form-signin" method="POST" action = "http://35.200.157.178:3000/auth" >
+
+        <h2 class="form-signin-heading">Demo company form --  Please sign in</h2>
+        <input type="text"      id="username" name="username"  class="form-control" placeholder="Email address" required autofocus>
+        <input type="password"  id="password" name ="password" class="form-control" placeholder="Password"      required>
+        <label class="checkbox">
+            <input type="checkbox" value="remember-me"  required > I am not a robot
+        </label>
+        <button class="btn btn-lg btn-primary btn-block" id="submitbtn" type="submitbtn"  onclick=" calculate();  SubmitForm();"  >Sign in</button>
+
+
+        <input type="hidden" id="js_enabled"        name="js_enabled"       class="form-control" value="0">
+        <input type="hidden" id="user_fingerprint"  name="user_fingerprint" class="form-control" value="">
+        <input type="hidden" id="lat"               name="lat"              class="form-control" value="0">
+        <input type="hidden" id="lon"               name="lon"              class="form-control" value="0">
+        <input type="hidden" id="time"              name="time"             class="form-control" value="0">
+        <input type="hidden" id="form_duration"     name="form_duration"    class="form-control" value="0">
+        <input type="hidden" id="temp_uuid"         name="temp_uuid"        class="form-control" value="">
+        <input type="hidden" id="country"           name="country"          class="form-control" value="">
+ 
+        <script type="text/javascript">     
+
+            var temp_time_flag = 0, 
+                tspeed, 
+                start, 
+                e;
+            document.getElementById('username').onkeypress = function () {
+                temp_time_flag == 0 ? start = new Date() : e = new Date();
+                temp_time_flag = 1;
+            }
+            function calculate() {
+                e = new Date();
+                var duration = (e.getTime() - start.getTime()) / 1000;
+                form_duration.value = duration;
+                console.log( duration );
+                return;
+            }
+            function SubmitForm(){
+                console.log( "submit form" );
+                document.form1.action="http://35.200.153.13:3000/ClientRequest";
+                document.form1.target='frame_result1';
+                document.form1.submit();
+
+                document.form1.action="http://35.200.157.178:3000/auth";
+                document.form1.target='frame_result2';
+                document.form1.submit();
+                return true;
+            }
+            function createUUID() {
+                var s = [];
+                var hexDigits = "0123456789abcdef";
+                for (var i = 0; i < 36; i++) {
+                    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+                }
+                s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+                s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+                s[8] = s[13] = s[18] = s[23] = "-";
+                return s.join("");
+            }
+            temp_uuid.value             = createUUID();
+            time.value                  =  new Date().getTime();
+            
+            async function get_FingerPrint_geolocation() {
+
+                 // Getting fingerprint
+                let promise_fingerprint = new Promise((resolve, reject) => {               //var Options = {excludeUserAgent: true , excludeWebGL: true , excludeCanvas :true, userDefinedFonts: true}
+                    new Fingerprint2().get(function (result, components) { 
+                        user_fingerprint.value  = result;                                  //a hash, representing your device fingerprint//console.log(components); // an array of FP components
+                        temp_uuid.value = temp_uuid.value + "|" + result;
+
+                        resolve("done!");
+                    });
+                });
+                let result = await promise_fingerprint;
+
+                // Getting location  
+                let promise_geolocation = new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        resolve("done");
+                        return;
+                    }
+                    function success(position) {
+                        lat.value = position.coords.latitude;
+                        lon.value = position.coords.longitude;
+                        resolve("done");
+                    }
+                    function error() {
+                        resolve("done");
+                    }
+                    navigator.geolocation.getCurrentPosition(success, error);
+                });
+                result = await promise_geolocation;  
+                
+                js_enabled.value            = 1;
+            }
+
+            get_FingerPrint_geolocation();
+            
+        </script>
+      </form>
+      <div id='resultcontainer'>
+        <div class='iframe_container'>
+        <iframe name='frame_result1' width='350px' height='100px' frameborder='2'></iframe>
+        </div>
+        <div class='iframe_container'>
+        <iframe name='frame_result2' width='350px' height='100px' frameborder='2'></iframe>
+        </div>
+      </div>
+    </div> 
+  </body>
+</html>
+
+ 
